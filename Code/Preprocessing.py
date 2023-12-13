@@ -71,16 +71,19 @@ def type_change():
     olympics.Medal = olympics.Medal.astype("category")
     olympics.Medal.cat.set_categories(["Bronze", "Silver", "Gold"], ordered=True)
     #olympics.info()
-
     return olympics
 
+#olympics.to_csv('/Users/paulinaheine/PycharmProjects/Olympic_Medals/Data/Original/olympics.csv', index=False)
 
 def preprocessing():
     summer, winter, dictionary = missing_values()
-    olympics = type_change()
+    olympics = concenate()
     return summer, winter, dictionary, olympics
 
-
+def preprocessing_predict():
+    summer, winter, dictionary = missing_values()
+    olympics = type_change()
+    return summer, winter, dictionary, olympics
 
 
 

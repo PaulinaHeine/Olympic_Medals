@@ -1,0 +1,12 @@
+original data:
+https://www.kaggle.com/datasets/the-guardian/olympic-games?select=dictionary.csv
+
+more about athletes
+https://www.kaggle.com/datasets/piterfm/olympic-games-medals-19862018/data?select=olympic_results.csv
+
+/Users/paulinaheine/PycharmProjects/Olympic_Medals/Plots
+
+pdf_filepath = '/Users/paulinaheine/PycharmProjects/Olympic_Medals/Plots.pdf'
+
+# Save the plot as a PDF
+fig.write_image(pdf_filepath)
