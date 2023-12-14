@@ -1,3 +1,4 @@
+##
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -6,10 +7,10 @@ import scipy.stats as stats
 import plotly.express as px
 import plotly.express as px
 import plotly.io as pio
-
+from seaborn import distplot
 
 from Preprocessing import preprocessing
-
+##
 summer, winter, dictionary, olympics = preprocessing()
 
 # Filter the top 10 countries
@@ -64,7 +65,7 @@ def t10_all():
     return plt.show()
 
 
-
+##
 def plot_top_medals(olympics):
     # Function to create a bar plot with medal counts and labels
     def plot_medals(medal_type, medal_counts, ax):
@@ -102,13 +103,13 @@ def plot_top_medals(olympics):
     plot = plt.show()
 
     return plot
-
+##
 
 # how many "games were played" summer vs winter
 # Set the default figure size for Seaborn plots
 sns.set(rc={"figure.figsize": (6, 4)})
 # Create a distribution plot
-plot = sns.displot(winter["Year"], kde=True, color="orange", bins=10)
+plot = sns.displot(winter["Year"], kde=True, color="orange")
 # Add a title to the plot
 plot.set(title="Distribution of Years in Winter Dataset")
 #pdf_filepath = '/Users/paulinaheine/PycharmProjects/Olympic_Medals/Plots.pdf'
@@ -117,18 +118,104 @@ plot.set(title="Distribution of Years in Winter Dataset")
 # Set the default figure size for Seaborn plots
 sns.set(rc={"figure.figsize": (6, 4)})
 # Create a distribution plot
-plot = sns.displot(summer["Year"], kde=True, color="orange", bins=10)
+plot = sns.displot(summer["Year"], kde=True, color="orange")
 # Add a title to the plot
 plot.set(title="Distribution of Years in Summer Dataset")
-#pdf_filepath = '/Users/paulinaheine/PycharmProjects/Olympic_Medals/Plots.pdf'
-#plot.savefig(pdf_filepath, format="pdf")
+pdf_filepath = '/Users/paulinaheine/PycharmProjects/Olympic_Medals/Plots/dist_summer.pdf'
+plot.savefig(pdf_filepath, format="pdf")
+
+
+
+
 
 ####
 #Men vs woman
 
 
-# Call the function with your DataFrame
-plot_top_medals(olympics)
+# Assuming 'Year' is the column representing the years
+# If not, replace 'Year' with the correct column name
+gender_over_years = olympics.groupby(['Year', 'Gender']).size().unstack().reset_index()
+
+# Create a complete set of years
+all_years = pd.DataFrame({'Year': range(gender_over_years['Year'].min(), gender_over_years['Year'].max() + 1)})
+
+# Merge with the existing data
+gender_over_years = pd.merge(all_years, gender_over_years, on='Year', how='left').fillna(0)
+#gender_over_years.set_index('Year', inplace=True)
+
+
+sns.displot(gender_over_years, kde=True, color="orange")
+
 
 pdf_filepath = '/Users/paulinaheine/PycharmProjects/Olympic_Medals/Plots.pdf'
 plot.savefig(pdf_filepath, format="pdf")
+
+##
+import plotly.offline as py
+py.init_notebook_mode(connected=True)
+import plotly.graph_objs as go
+import plotly.tools as tls
+#Medal Distribution By Country
+import plotly.graph_objs as go
+from plotly.offline import plot
+
+medals_map = olympics.groupby(['Country_Name', 'Code'])['Medal'].count().reset_index()
+
+data = [dict(
+    type='choropleth',
+    autocolorscale=False,
+    colorscale='Viridis',
+    reversescale=True,
+    showscale=True,
+    locations=medals_map['Code'],
+    z=medals_map['Medal'],
+    locationmode='Code',
+    text=medals_map['Country_Name'].unique(),
+    marker=dict(
+        line=dict(color='rgb(200,200,200)', width=0.5)),
+    colorbar=dict(autotick=True, tickprefix='',
+                  title='Medals')
+)
+]
+
+layout = dict(
+    title='Total Medals By Country',
+    geo=dict(
+        showframe=True,
+        showocean=True,
+        oceancolor='rgb(0,0,0)',
+        projection=dict(
+            type='Mercator',
+        ),
+    ),
+)
+
+fig = dict(data=data, layout=layout)
+
+# Save the plot as an HTML file
+plot(fig, validate=False, filename='worldmap2010.html')
+
+### Plot for Summer vs Winter Olympics
+medals_country_summer = summer.groupby(['Country_Name', 'Medal'])['Gender'].count().reset_index().sort_values(by='Gender', ascending=False)
+medals_country_summer = medals_country_summer.pivot('Country_Name', 'Medal', 'Gender').fillna(0)
+top_summer = medals_country_summer.sort_values(by='Gold', ascending=False)[:11]
+# Create a new figure and subplot for Summer Olympics
+fig, ax1 = plt.subplots(1, 2, figsize=(15, 6))
+# Plot for Summer Olympics
+top_summer.plot.barh(width=0.8, color=['#CD7F32', '#FFDF00', '#D3D3D3'], ax=ax1[0])
+ax1[0].set_title('Medals Distribution Of Top 10 Countries (Summer Olympics)')
+# Plot for Winter Olympics
+medals_country_winter = winter.groupby(['Country_Name', 'Medal'])['Gender'].count().reset_index().sort_values(by='Gender', ascending=False)
+medals_country_winter = medals_country_winter.pivot('Country_Name', 'Medal', 'Gender').fillna(0)
+top_winter = medals_country_winter.sort_values(by='Gold', ascending=False)[:11]
+# Plot for Winter Olympics
+top_winter.plot.barh(width=0.8, color=['#CD7F32', '#FFDF00', '#D3D3D3'], ax=ax1[1])
+ax1[1].set_title('Medals Distribution Of Top 10 Countries (Winter Olympics)')
+# Adjust the layout
+plt.tight_layout()
+# Show the plots
+plt.show()
+pdf_filepath = '/Users/paulinaheine/PycharmProjects/Olympic_Medals/Plots'
+plt.savefig(pdf_filepath)
+##
+

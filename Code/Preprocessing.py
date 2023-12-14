@@ -60,9 +60,11 @@ def concenate():
 
     # And now we fill the null values using the fillna and passing them directly into the DataFrame using inplace=True;
     olympics["Country_Name"].fillna(olympics.Code.map(mapping), inplace=True)
+    summer = olympics[olympics["Edition"]=="Summer"]
+    winter = olympics[olympics["Edition"]=="Winter"]
     #olympics[olympics.isnull().any(axis=1)]
-    ### NO NANS LEFT
-    return olympics
+    # NO NANS LEFT
+    return summer, winter, olympics
 
 
 def type_change():
@@ -77,7 +79,7 @@ def type_change():
 
 def preprocessing():
     summer, winter, dictionary = missing_values()
-    olympics = concenate()
+    summer, winter, olympics = concenate()
     return summer, winter, dictionary, olympics
 
 def preprocessing_predict():
