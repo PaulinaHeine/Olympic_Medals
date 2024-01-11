@@ -1,19 +1,14 @@
-##
-import pandas as pd
-import numpy as np
+
 import matplotlib.pyplot as plt
 import seaborn as sns
-import scipy.stats as stats
-import plotly.express as px
-import plotly.express as px
-import plotly.io as pio
-from seaborn import distplot
+
 
 from Preprocessing import preprocessing
-##
-summer, winter, dictionary, olympics = preprocessing()
 
-# Filter the top 10 countries
+##
+summer, winter, dictionary, olympics, groupsports_all, groupsports_shrinked, individuals, olympics_indandgroup = preprocessing()
+
+# Filter the top 10 countries in winning medals
 def t10_all():
     top10 = olympics['Country_Name'].value_counts().head(10).index
 
@@ -105,22 +100,16 @@ def plot_top_medals(olympics):
     return plot
 ##
 
-# how many "games were played" summer vs winter
+# how many "games were played"
 # Set the default figure size for Seaborn plots
-sns.set(rc={"figure.figsize": (6, 4)})
-# Create a distribution plot
-plot = sns.displot(winter["Year"], kde=True, color="orange")
-# Add a title to the plot
-plot.set(title="Distribution of Years in Winter Dataset")
-#pdf_filepath = '/Users/paulinaheine/PycharmProjects/Olympic_Medals/Plots.pdf'
-#plot.savefig(pdf_filepath, format="pdf")
+
 
 # Set the default figure size for Seaborn plots
 sns.set(rc={"figure.figsize": (6, 4)})
 # Create a distribution plot
-plot = sns.displot(summer["Year"], kde=True, color="orange")
+plot = sns.displot(olympics_indandgroup["Year"], kde=True, color="orange")
 # Add a title to the plot
-plot.set(title="Distribution of Years in Summer Dataset")
+plot.set(title="Distribution of Games")
 pdf_filepath = '/Users/paulinaheine/PycharmProjects/Olympic_Medals/Plots/dist_summer.pdf'
 plot.savefig(pdf_filepath, format="pdf")
 
@@ -131,26 +120,15 @@ plot.savefig(pdf_filepath, format="pdf")
 ####
 #Men vs woman
 
-
+# NOW ALL AVAILABLE DATA IS USED SINCE IT DOES NOT MATTER IF IT IS A TEAM!!!
 # Assuming 'Year' is the column representing the years
 # If not, replace 'Year' with the correct column name
-gender_over_years = olympics.groupby(['Year', 'Gender']).size().unstack().reset_index()
-
-# Create a complete set of years
-all_years = pd.DataFrame({'Year': range(gender_over_years['Year'].min(), gender_over_years['Year'].max() + 1)})
-
-# Merge with the existing data
-gender_over_years = pd.merge(all_years, gender_over_years, on='Year', how='left').fillna(0)
-#gender_over_years.set_index('Year', inplace=True)
-
-
-sns.displot(gender_over_years, kde=True, color="orange")
-
+olympics.groupby(['Year', 'Gender']).size().unstack(level=1).plot(kind='bar')
 
 pdf_filepath = '/Users/paulinaheine/PycharmProjects/Olympic_Medals/Plots.pdf'
 plot.savefig(pdf_filepath, format="pdf")
 
-##
+#####
 import plotly.offline as py
 py.init_notebook_mode(connected=True)
 import plotly.graph_objs as go
@@ -215,7 +193,18 @@ ax1[1].set_title('Medals Distribution Of Top 10 Countries (Winter Olympics)')
 plt.tight_layout()
 # Show the plots
 plt.show()
-pdf_filepath = '/Users/paulinaheine/PycharmProjects/Olympic_Medals/Plots'
-plt.savefig(pdf_filepath)
-##
+#pdf_filepath = '/Users/paulinaheine/PycharmProjects/Olympic_Medals/Plots'
+#plt.savefig(pdf_filepath)
+
+## Gdp over years vs Medals over years
+top10 = olympics['Country_Name'].value_counts().head(10)
+gm = olympics.groupby(["Country_Name","Year"])["Medal"].count()
+
+test_USA = gm.loc["United States"]
+sns.lineplot(data=test_USA)
+sns.histplot(data=test_USA, x="Year", kde=True,bins=40)
+sns.displot(test_USA,x = "Year", kde=True, color="orange")
+
+plt.scatter(olympics["Country"], olympics["MEdal"], alpha=0.5)
+plt.show(olympics)
 

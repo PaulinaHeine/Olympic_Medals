@@ -7,11 +7,12 @@ def importation():
     summer = pd.read_csv("/Users/paulinaheine/PycharmProjects/Olympic_Medals/Data/Original/summer.csv")
     winter = pd.read_csv("/Users/paulinaheine/PycharmProjects/Olympic_Medals/Data/Original/winter.csv")
     dictionary = pd.read_csv("/Users/paulinaheine/PycharmProjects/Olympic_Medals/Data/Original/dictionary.csv")
-    return summer, winter, dictionary
+    gdp = pd.read_csv("/Users/paulinaheine/PycharmProjects/Olympic_Medals/Data/External/gdp.csv")
+    return summer, winter, dictionary, gdp
 
 # Checking for missing values
 def missing_values():
-    summer, winter, dictionary = importation()
+    summer, winter, dictionary, gdp = importation()
     #summer.info()
     # 4 missing values in the Country Column;
     #summer[summer.isnull().any(axis=1)]
@@ -27,10 +28,12 @@ def missing_values():
     # at least 20 founded; GPD & Population
     #dictionary[dictionary.isnull().any(axis=1)]
     # Nans are ignored since we use external Data for GDP
-    return summer, winter, dictionary
+
+    gdp = gdp.fillna(0)
+    return summer, winter, dictionary, gdp
 
 def concenate():
-    summer, winter, dictionary = missing_values()
+    summer, winter, dictionary,gdp = missing_values()
     # Adressing the concatenation into a new DataFrame called olympics;
     olympics = pd.concat([summer, winter], axis = 0, keys = ["Summer", "Winter"],
                         names = ["Edition"]).reset_index().drop(columns = "level_1")
@@ -58,13 +61,34 @@ def concenate():
     # and then we map the series created called Mapping;
     olympics.loc[missing_index, "Code"].map(mapping)
 
+    # Add GDP
+    olympics = olympics.merge(right=gdp, on='Code', how='left')
+
+
     # And now we fill the null values using the fillna and passing them directly into the DataFrame using inplace=True;
     olympics["Country_Name"].fillna(olympics.Code.map(mapping), inplace=True)
     summer = olympics[olympics["Edition"]=="Summer"]
     winter = olympics[olympics["Edition"]=="Winter"]
+
+    olympics.fillna(0, inplace=True)
+
+
+    ####find groupsorts
+    #all participants of groupsports are listed
+    groupsports_all = olympics.loc[olympics.duplicated(subset=["Year","City","Sport","Discipline","Event","Medal"], keep= False)]
+    # only one representative is listed
+    groupsports_shrinked = olympics.drop_duplicates(subset=["Year","City","Sport","Discipline","Event","Medal"],keep = "first")
+
+    #### find individual sports
+    individuals = olympics.drop_duplicates(subset=["Year","City","Sport","Discipline","Event","Medal"],keep = False)
+
+    olympics_indandgroup = groupsports_shrinked.append(individuals)
+
+
+
     #olympics[olympics.isnull().any(axis=1)]
     # NO NANS LEFT
-    return summer, winter, olympics
+    return summer, winter, olympics, groupsports_all, groupsports_shrinked, individuals, olympics_indandgroup
 
 
 def type_change():
@@ -78,9 +102,9 @@ def type_change():
 #olympics.to_csv('/Users/paulinaheine/PycharmProjects/Olympic_Medals/Data/Original/olympics.csv', index=False)
 
 def preprocessing():
-    summer, winter, dictionary = missing_values()
-    summer, winter, olympics = concenate()
-    return summer, winter, dictionary, olympics
+    summer, winter, dictionary,gdp = missing_values()
+    summer, winter, olympics, groupsports_all, groupsports_shrinked, individuals, olympics_indandgroup = concenate()
+    return summer, winter, dictionary, olympics, groupsports_all, groupsports_shrinked, individuals, olympics_indandgroup
 
 def preprocessing_predict():
     summer, winter, dictionary = missing_values()
