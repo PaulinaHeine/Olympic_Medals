@@ -1,6 +1,7 @@
 
 import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.preprocessing import MinMaxScaler
 
 
 from Preprocessing import preprocessing
@@ -10,11 +11,11 @@ summer, winter, dictionary, olympics, groupsports_all, groupsports_shrinked, ind
 
 # Filter the top 10 countries in winning medals
 def t10_all():
-    top10 = olympics['Country_Name'].value_counts().head(10).index
-
+    # Set seaborn style with a grey background
+    sns.set(style="darkgrid")
+    top10 = olympics_indandgroup['Country_Name'].value_counts().head(10).index
     # Filter data for the top 10 countries
-    top10_data = olympics[olympics['Country_Name'].isin(top10)]
-
+    top10_data = olympics_indandgroup[olympics_indandgroup['Country_Name'].isin(top10)]
     # Create a DataFrame with the count of medals for each country
     medal_counts = (
         top10_data.groupby(['Country_Name', 'Medal'])
@@ -22,31 +23,28 @@ def t10_all():
         .unstack(fill_value=0)
         [['Bronze', 'Silver', 'Gold']]  # Ensure the correct order of columns
     )
-
     # Calculate the total number of medals for each country
     medal_counts['Total'] = medal_counts.sum(axis=1)
-
     # Sort the DataFrame by the total number of medals in descending order
     medal_counts_sorted = medal_counts.sort_values(by='Total', ascending=False).drop('Total', axis=1)
-
     # Define explicit colors for Gold, Silver, and Bronze
     colors = {'Gold': 'gold', 'Silver': 'silver', 'Bronze': 'peru'}
-
     # Create a horizontal stacked bar plot with explicit colors
-    plt.figure(figsize=(12, 8))
-    ax = medal_counts_sorted.plot(kind='barh', stacked=True, color=[colors[col] for col in medal_counts_sorted.columns], figsize=(12, 8))
-
+    plt.figure(figsize=(15, 15))
+    ax = medal_counts_sorted.plot(kind='barh', stacked=True, color=[colors[col] for col in medal_counts_sorted.columns],
+                                  width=0.8)
+    # Replace specific country labels
+    country_labels = {'United States': 'USA', 'Soviet Union': 'UdSSR', 'United Kingdom': 'UK'}
+    tick_positions = range(len(top10))
+    plt.yticks(tick_positions, [country_labels.get(country, country) for country in top10])
     # Add labels and title
     plt.title("Top 10 Countries by Total Number of Medals", fontsize=18)
     plt.xlabel("Number of Medals", fontsize=15)
     plt.ylabel("Country", fontsize=15)
-
     # Invert the y-axis for better readability
     plt.gca().invert_yaxis()
-
     # Display the legend at the bottom right inside the box
     plt.legend(title='Medal', bbox_to_anchor=(1, 0), loc='lower right', fontsize=12)
-
     # Add text annotations for each part of the bars
     for i, country in enumerate(top10):
         total = 0
@@ -55,13 +53,16 @@ def t10_all():
             if count > 0:
                 plt.text(total + count / 2, i, f"{int(count)}", ha='center', va='center', fontsize=10, color='black')
                 total += count
-
     # Display the plot
+    pdf_filepath = '/Users/paulinaheine/PycharmProjects/Olympic_Medals/Plots/1.pdf'
+    plt.savefig(pdf_filepath, format="pdf")
     return plt.show()
+#t10_all()
+
 
 
 ##
-def plot_top_medals(olympics):
+def plot_top_medals(olympics_indandgroup):
     # Function to create a bar plot with medal counts and labels
     def plot_medals(medal_type, medal_counts, ax):
         colors = {'Gold': 'gold', 'Silver': 'silver', 'Bronze': 'peru'}
@@ -105,12 +106,12 @@ def plot_top_medals(olympics):
 
 
 # Set the default figure size for Seaborn plots
-sns.set(rc={"figure.figsize": (6, 4)})
+sns.set(rc={"figure.figsize": (5, 5)})
 # Create a distribution plot
 plot = sns.displot(olympics_indandgroup["Year"], kde=True, color="orange")
 # Add a title to the plot
-plot.set(title="Distribution of Games")
-pdf_filepath = '/Users/paulinaheine/PycharmProjects/Olympic_Medals/Plots/dist_summer.pdf'
+plot.set(title="Distribution of Medals 1869-2014",fontsize=18)
+pdf_filepath = '/Users/paulinaheine/PycharmProjects/Olympic_Medals/Plots/dist_medals.pdf'
 plot.savefig(pdf_filepath, format="pdf")
 
 
@@ -123,88 +124,85 @@ plot.savefig(pdf_filepath, format="pdf")
 # NOW ALL AVAILABLE DATA IS USED SINCE IT DOES NOT MATTER IF IT IS A TEAM!!!
 # Assuming 'Year' is the column representing the years
 # If not, replace 'Year' with the correct column name
-olympics.groupby(['Year', 'Gender']).size().unstack(level=1).plot(kind='bar')
 
-pdf_filepath = '/Users/paulinaheine/PycharmProjects/Olympic_Medals/Plots.pdf'
-plot.savefig(pdf_filepath, format="pdf")
+import matplotlib.pyplot as plt
 
-#####
-import plotly.offline as py
-py.init_notebook_mode(connected=True)
-import plotly.graph_objs as go
-import plotly.tools as tls
-#Medal Distribution By Country
-import plotly.graph_objs as go
-from plotly.offline import plot
 
-medals_map = olympics.groupby(['Country_Name', 'Code'])['Medal'].count().reset_index()
+# Group by Year and Gender and calculate the size
+grouped_data = olympics.groupby(['Year', 'Gender']).size().unstack(level=1)
+#grouped_summer = summer.groupby(["Year","Gender"]).Medal.count().reset_index().pivot("Year","Gender","Medal").fillna(0)
+# Create a figure and axis
+fig, ax = plt.subplots(figsize=(15, 15))
 
-data = [dict(
-    type='choropleth',
-    autocolorscale=False,
-    colorscale='Viridis',
-    reversescale=True,
-    showscale=True,
-    locations=medals_map['Code'],
-    z=medals_map['Medal'],
-    locationmode='Code',
-    text=medals_map['Country_Name'].unique(),
-    marker=dict(
-        line=dict(color='rgb(200,200,200)', width=0.5)),
-    colorbar=dict(autotick=True, tickprefix='',
-                  title='Medals')
-)
-]
 
-layout = dict(
-    title='Total Medals By Country',
-    geo=dict(
-        showframe=True,
-        showocean=True,
-        oceancolor='rgb(0,0,0)',
-        projection=dict(
-            type='Mercator',
-        ),
-    ),
-)
+# Plot the stacked bar chart
+grouped_data.plot(kind='bar', stacked=True, color=['blue', 'red'], ax=ax)
+#grouped_summer.plot(kind="line")
 
-fig = dict(data=data, layout=layout)
 
-# Save the plot as an HTML file
-plot(fig, validate=False, filename='worldmap2010.html')
+# Set title and labels
+plt.setp(ax.get_xticklabels(), rotation=45, ha="right")
+plt.title('Male vs. Female Participation', fontsize=18)
+plt.xlabel('Year', fontsize=14)
+plt.ylabel('Count', fontsize=14)
 
-### Plot for Summer vs Winter Olympics
-medals_country_summer = summer.groupby(['Country_Name', 'Medal'])['Gender'].count().reset_index().sort_values(by='Gender', ascending=False)
-medals_country_summer = medals_country_summer.pivot('Country_Name', 'Medal', 'Gender').fillna(0)
-top_summer = medals_country_summer.sort_values(by='Gold', ascending=False)[:11]
-# Create a new figure and subplot for Summer Olympics
-fig, ax1 = plt.subplots(1, 2, figsize=(15, 6))
-# Plot for Summer Olympics
-top_summer.plot.barh(width=0.8, color=['#CD7F32', '#FFDF00', '#D3D3D3'], ax=ax1[0])
-ax1[0].set_title('Medals Distribution Of Top 10 Countries (Summer Olympics)')
-# Plot for Winter Olympics
-medals_country_winter = winter.groupby(['Country_Name', 'Medal'])['Gender'].count().reset_index().sort_values(by='Gender', ascending=False)
-medals_country_winter = medals_country_winter.pivot('Country_Name', 'Medal', 'Gender').fillna(0)
-top_winter = medals_country_winter.sort_values(by='Gold', ascending=False)[:11]
-# Plot for Winter Olympics
-top_winter.plot.barh(width=0.8, color=['#CD7F32', '#FFDF00', '#D3D3D3'], ax=ax1[1])
-ax1[1].set_title('Medals Distribution Of Top 10 Countries (Winter Olympics)')
-# Adjust the layout
-plt.tight_layout()
-# Show the plots
+
+# Add legend
+plt.legend(['Male', 'Female'],fontsize=12)
+pdf_filepath = '/Users/paulinaheine/PycharmProjects/Olympic_Medals/Plots/malevsfemale.pdf'
+plt.savefig(pdf_filepath, format="pdf")
+
+# Show the plot
 plt.show()
-#pdf_filepath = '/Users/paulinaheine/PycharmProjects/Olympic_Medals/Plots'
-#plt.savefig(pdf_filepath)
+
+
+
+
 
 ## Gdp over years vs Medals over years
-top10 = olympics['Country_Name'].value_counts().head(10)
-gm = olympics.groupby(["Country_Name","Year"])["Medal"].count()
 
-test_USA = gm.loc["United States"]
-sns.lineplot(data=test_USA)
-sns.histplot(data=test_USA, x="Year", kde=True,bins=40)
-sns.displot(test_USA,x = "Year", kde=True, color="orange")
 
-plt.scatter(olympics["Country"], olympics["MEdal"], alpha=0.5)
-plt.show(olympics)
+#only 2014
+y = list(range(1988, 2001, 4))
+for year in y:
+    # Filter the DataFrame for the specified years
+    filtered_df = olympics_indandgroup[olympics_indandgroup['Year']==year]
+
+    #only gdp of 2014
+    g14 = filtered_df[['Country_Name',str(year)]
+    ].drop_duplicates(keep="first")
+    #medalcountt of 2014
+    y2014 = filtered_df.groupby(["Year","Country_Name"])["Medal"].count().to_frame()
+
+    eda_gdp = y2014.merge(g14, how='left', right_on="Country_Name", left_on="Country_Name")
+
+
+
+
+    # Specify the columns to normalize
+    columns_to_normalize = [str(year)]
+
+
+    # Normalize the specified columns
+    scaler = MinMaxScaler()
+    eda_gdp[columns_to_normalize] = scaler.fit_transform(eda_gdp[columns_to_normalize])
+
+
+
+    # Scatter plot
+    for year in columns_to_normalize:
+        plt.scatter(eda_gdp[year], eda_gdp['Medal'], label=year,alpha= 0.69)
+    sns.set(style="darkgrid")
+    # Adding labels and title
+    plt.xlabel('GDP per Capita (normalized)',fontsize=14)
+    plt.ylabel('Medal',fontsize=14)
+    plt.title('Scatter Plot of Medals vs. GDP', fontsize=20)
+
+
+
+    # Adding a legend
+    plt.legend()
+
+    # Show the plot
+    plt.show()
 
