@@ -138,6 +138,32 @@ for fn, fi in sorted(zip(X.columns, gbc.feature_importances_), key=lambda xx: xx
 cm = sklearn.metrics.confusion_matrix(y_test,y_pred)
 
 # For 2014 winter prediction
-
 new = olympics_indandgroup_2.iloc[14145:]
 new["prediction"] = y_pred
+#2014 actuals
+trues = olympics_indandgroup_2.iloc[14145:]
+
+def plot():
+    sns.set(style="darkgrid")
+    top10 = trues['Country_Name'].value_counts().head(10).index
+    # Filter data for the top 10 countries
+    top10_data = trues[trues['Country_Name'].isin(top10)]
+    # Create a DataFrame with the count of medals for each country
+    medal_counts = (
+        top10_data.groupby(['Country_Name', 'Medal'])
+        .size()
+        .unstack(fill_value=0)
+
+    )
+    # Calculate the total number of medals for each country
+    medals = medal_counts.sum(axis=1)
+    # Sort the DataFrame by the total number of medals in descending order
+    medals = medals.sort_values(ascending=True)
+    # Define explicit colors for Gold, Silver, and Bronze
+
+    # Create a horizontal stacked bar plot with explicit colors
+    plt.title("Predicted top 10 Countries by total Number of Medals in 2014", fontsize=18)
+    plt.xlabel("Number of Medals", fontsize=15)
+    return medals.plot(kind='barh')
+
+    # Invert the y-axis for better readability
