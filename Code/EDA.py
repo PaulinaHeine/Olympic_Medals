@@ -1,9 +1,8 @@
 
+
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.preprocessing import MinMaxScaler
-
-
 from Preprocessing import preprocessing
 
 ##
@@ -43,7 +42,7 @@ def t10_all():
     plt.ylabel("Country", fontsize=15)
     # Invert the y-axis for better readability
     plt.gca().invert_yaxis()
-    # Display the legend at the bottom right inside the box
+    # legend at the bottom right inside the box
     plt.legend(title='Medal', bbox_to_anchor=(1, 0), loc='lower right', fontsize=12)
     # Add text annotations for each part of the bars
     for i, country in enumerate(top10):
@@ -61,55 +60,11 @@ def t10_all():
 
 
 
-##
-def plot_top_medals(olympics_indandgroup):
-    # Function to create a bar plot with medal counts and labels
-    def plot_medals(medal_type, medal_counts, ax):
-        colors = {'Gold': 'gold', 'Silver': 'silver', 'Bronze': 'peru'}
-        counts = medal_counts[medal_counts['Medal'] == medal_type].groupby('Country_Name').size().sort_values(ascending=False).head(10)
-
-        bars = counts.plot(kind='barh', color=[colors[medal_type]], ax=ax)
-
-        for bar in bars.patches:
-            ax.text(bar.get_width(), bar.get_y() + bar.get_height() / 2, f'{int(bar.get_width())}',
-                    va='center', fontsize=12, color='black')
-
-        ax.set_title(f"Top 10 Countries - {medal_type} Medals", fontsize=16)
-        ax.set_xlabel("Number of Medals", fontsize=12)
-        ax.set_ylabel("Country", fontsize=12)
-        ax.invert_yaxis()  # Invert y-axis for better readability
-        ax.legend([medal_type], loc='lower right', fontsize=10)
-
-    # Create a combined figure with subplots for Gold, Silver, and Bronze
-    fig, axes = plt.subplots(1, 3, figsize=(18, 6))
-
-    # Plot Gold Medals
-    plot_medals('Gold', olympics, axes[0])
-
-    # Plot Silver Medals
-    plot_medals('Silver', olympics, axes[1])
-
-    # Plot Bronze Medals
-    plot_medals('Bronze', olympics, axes[2])
-
-    # Adjust layout without tight_layout
-    plt.tight_layout()
-
-    # Display the plot
-    plot = plt.show()
-
-    return plot
-##
-
 # how many "games were played"
-# Set the default figure size for Seaborn plots
 
-
-# Set the default figure size for Seaborn plots
 sns.set(rc={"figure.figsize": (5, 5)})
-# Create a distribution plot
 plot = sns.displot(olympics_indandgroup["Year"], kde=True, color="orange")
-# Add a title to the plot
+
 plot.set(title="Distribution of Medals 1869-2014",fontsize=18)
 pdf_filepath = '/Users/paulinaheine/PycharmProjects/Olympic_Medals/Plots/dist_medals.pdf'
 plot.savefig(pdf_filepath, format="pdf")
@@ -124,8 +79,6 @@ plot.savefig(pdf_filepath, format="pdf")
 # NOW ALL AVAILABLE DATA IS USED SINCE IT DOES NOT MATTER IF IT IS A TEAM!!!
 # Assuming 'Year' is the column representing the years
 # If not, replace 'Year' with the correct column name
-
-import matplotlib.pyplot as plt
 
 
 # Group by Year and Gender and calculate the size
@@ -160,8 +113,6 @@ plt.show()
 
 
 ## Gdp over years vs Medals over years
-
-
 #only 2014
 y = list(range(1988, 2001, 4))
 for year in y:

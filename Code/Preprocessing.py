@@ -149,10 +149,7 @@ def preprocessing_clustering():
 
     return summer, winter, dictionary, olympics, olympics_indandgroup, summer_indandgroup, winter_indandgroup
 
-def preprocessing_predict():
-    summer, winter, dictionary = missing_values()
-    olympics = type_change()
-    return summer, winter, dictionary, olympics
+
 
 
 
